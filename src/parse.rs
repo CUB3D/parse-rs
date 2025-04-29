@@ -1,18 +1,5 @@
 use core::convert::TryInto;
 
-#[derive(Debug)]
-pub enum ParseError {
-    NoData,
-}
-
-impl core::fmt::Display for ParseError {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl core::error::Error for ParseError {}
-
 pub fn le_uleb128(i: &[u8]) -> Result<(&[u8], u128), ParseError> {
     // I hate VLUs, I hate it, I hate it so much
     let mut res = 0u128;
@@ -30,7 +17,6 @@ pub fn le_uleb128(i: &[u8]) -> Result<(&[u8], u128), ParseError> {
 
     Ok((i, res))
 }
-
 
 pub fn le_u64(i: &[u8]) -> Result<(&[u8], u64), ParseError> {
     if i.len() < 8 {
@@ -62,10 +48,10 @@ pub fn be_u16(i: &[u8]) -> (&[u8], u16) {
 }
 
 pub fn ne_u8(i: &[u8]) -> Result<(&[u8], u8), ParseError> {
-    if i.len() < 1 {
+    if i.is_empty() {
         return Err(ParseError::NoData);
     }
-    
+
     Ok((&i[1..], i[0]))
 }
 
@@ -79,11 +65,16 @@ pub fn take(i: &[u8], count: usize) -> Result<(&[u8], &[u8]), ParseError> {
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+use crate::ParseError;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
 #[cfg(feature = "alloc")]
-pub fn take_vec<T, E, F: Fn(&[u8])->Result<(&[u8], T), E>>(i: &[u8], count: usize, func: F) -> Result<(&[u8], Vec<T>), E> {
+pub fn take_vec<T, E, F: Fn(&[u8]) -> Result<(&[u8], T), E>>(
+    i: &[u8],
+    count: usize,
+    func: F,
+) -> Result<(&[u8], Vec<T>), E> {
     let mut vec = Vec::with_capacity(count);
 
     let mut i = i;
@@ -94,59 +85,4 @@ pub fn take_vec<T, E, F: Fn(&[u8])->Result<(&[u8], T), E>>(i: &[u8], count: usiz
     }
 
     Ok((i, vec))
-}
-
-pub trait ParseBytes<'a> {
-    fn parse(i: &'a [u8]) -> Result<(&'a [u8], Self), ()>   where Self:  Sized;
-}
-
-pub struct SliceWriter<'a>(&'a mut [u8], usize);
-
-impl<'a> SliceWriter<'a> {
-    pub fn new_from(data: &'a mut [u8]) -> SliceWriter<'a> {
-        Self(data, 0)
-    }
-
-    pub fn len_written(&self) -> usize { self.1}
-
-    pub fn as_slice_mut(&mut self) -> &mut[u8] {
-        self.0
-    }
-
-    pub fn as_slice(&self) -> &[u8] {
-        &self.0[..self.1]
-    }
-
-    pub fn put(&mut self, data: &[u8]) {
-        (&mut self.0[self.1..self.1+data.len()]).copy_from_slice(data);
-        self.1 += data.len();
-    }
-
-    pub fn le_u16(&mut self, v: u16) {
-        self.put(&v.to_le_bytes());
-    }
-
-    pub fn be_u16(&mut self, v: u16) {
-        self.put(&v.to_be_bytes());
-    }
-
-    pub fn be_u32(&mut self, v: u32) {
-        self.put(&v.to_be_bytes());
-    }
-
-    #[deprecated]
-    pub fn le_u8(&mut self, v: u8) {
-        self.put(&v.to_le_bytes());
-    }
-    
-    pub fn ne_u8(&mut self, v: u8) {
-        self.put(&v.to_le_bytes());
-    }
-}
-
-pub trait GenerateBytes {
-    fn generate<'a, 'b>(&'b self, i: &'b mut SliceWriter<'a>);
-
-    /// How much data will be produced?
-    fn generated_size(&self) -> usize;
 }
