@@ -18,6 +18,13 @@ pub fn le_uleb128(i: &[u8]) -> Result<(&[u8], u128), ParseError> {
     Ok((i, res))
 }
 
+pub fn le_f64(i: &[u8]) -> Result<(&[u8], f64), ParseError> {
+    if i.len() < 8 {
+        return Err(ParseError::NoData);
+    }
+    Ok((&i[8..], f64::from_le_bytes((&i[..8]).try_into().unwrap())))
+}
+
 pub fn le_u64(i: &[u8]) -> Result<(&[u8], u64), ParseError> {
     if i.len() < 8 {
         return Err(ParseError::NoData);
