@@ -43,6 +43,22 @@ pub fn be_u32(i: &[u8]) -> (&[u8], u32) {
     (&i[4..], u32::from_be_bytes((&i[..4]).try_into().unwrap()))
 }
 
+pub fn le_u24(i: &[u8]) -> Result<(&[u8], u32), ParseError> {
+    if i.len() < 3 {
+        return Err(ParseError::NoData);
+    }
+    let num = (i[0] as u32) | ((i[1] as u32) << 8) | ((i[2] as u32) << 16);
+    Ok((&i[3..], num))
+}
+
+pub fn be_u24(i: &[u8]) -> Result<(&[u8], u32), ParseError> {
+    if i.len() < 3 {
+        return Err(ParseError::NoData);
+    }
+    let num = (i[2] as u32) | ((i[1] as u32) << 8) | ((i[0] as u32) << 16);
+    Ok((&i[3..], num))
+}
+
 pub fn le_u16(i: &[u8]) -> Result<(&[u8], u16), ParseError> {
     if i.len() < 2 {
         return Err(ParseError::NoData);
