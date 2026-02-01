@@ -92,6 +92,15 @@ pub fn take(i: &[u8], count: usize) -> Result<(&[u8], &[u8]), ParseError> {
     Ok((&i[count..], &i[..count]))
 }
 
+pub fn take_arr<const SZ: usize>(i: &[u8]) -> Result<(&[u8], [u8; SZ]), ParseError> {
+    if i.len() < SZ {
+        return Err(ParseError::NoData);
+    }
+    let mut tmp = [0u8; SZ];
+    tmp.copy_from_slice(&i[..SZ]);
+    Ok((&i[SZ..], tmp))
+}
+
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
