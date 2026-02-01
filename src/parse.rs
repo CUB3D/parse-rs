@@ -39,6 +39,13 @@ pub fn le_u32(i: &[u8]) -> Result<(&[u8], u32), ParseError> {
     Ok((&i[4..], u32::from_le_bytes((&i[..4]).try_into().unwrap())))
 }
 
+pub fn le_i32(i: &[u8]) -> Result<(&[u8], i32), ParseError> {
+    if i.len() < 4 {
+        return Err(ParseError::NoData);
+    }
+    Ok((&i[4..], i32::from_le_bytes((&i[..4]).try_into().unwrap())))
+}
+
 pub fn be_u32(i: &[u8]) -> (&[u8], u32) {
     (&i[4..], u32::from_be_bytes((&i[..4]).try_into().unwrap()))
 }
