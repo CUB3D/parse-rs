@@ -1,4 +1,5 @@
 #![no_std]
+extern crate alloc;
 
 pub mod generate_bytes;
 pub mod parse;

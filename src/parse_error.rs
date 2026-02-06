@@ -1,6 +1,10 @@
 #[derive(Debug)]
 pub enum ParseError {
+    /// Tried to read from an empty slice
     NoData,
+    
+    /// Stuck in a loop, without progressing
+    NoProgress
 }
 
 impl core::fmt::Display for ParseError {

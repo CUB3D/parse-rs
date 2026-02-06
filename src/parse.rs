@@ -125,3 +125,24 @@ pub fn take_vec<T, E, F: Fn(&[u8]) -> Result<(&[u8], T), E>>(
 
     Ok((i, vec))
 }
+
+#[cfg(feature = "alloc")]
+pub fn take_all<T, E, F: Fn(&[u8]) -> Result<(&[u8], T), E>>(
+    i: &[u8],
+    count: usize,
+    func: F,
+) -> Result<(&[u8], Vec<T>), E> {
+    let mut vec = Vec::new();
+
+    let mut i = i;
+    while !i.is_empty() {
+        let (j, v) = func(i)?;
+        if j.len() == i.len() {
+            panic!("No progress");
+        }
+        vec.push(v);
+        i = j;
+    }
+
+    Ok((i, vec))
+}
