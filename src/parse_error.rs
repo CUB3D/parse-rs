@@ -4,7 +4,10 @@ pub enum ParseError {
     NoData,
     
     /// Stuck in a loop, without progressing
-    NoProgress
+    NoProgress,
+    
+    /// Failed to read a utf8 string
+    InvalidString,
 }
 
 impl core::fmt::Display for ParseError {

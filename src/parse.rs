@@ -129,9 +129,8 @@ pub fn take_vec<T, E, F: Fn(&[u8]) -> Result<(&[u8], T), E>>(
 #[cfg(feature = "alloc")]
 pub fn take_all<T, E, F: Fn(&[u8]) -> Result<(&[u8], T), E>>(
     i: &[u8],
-    count: usize,
     func: F,
-) -> Result<(&[u8], Vec<T>), E> {
+) -> Result<Vec<T>, E> {
     let mut vec = Vec::new();
 
     let mut i = i;
@@ -144,5 +143,25 @@ pub fn take_all<T, E, F: Fn(&[u8]) -> Result<(&[u8], T), E>>(
         i = j;
     }
 
-    Ok((i, vec))
+    Ok(vec)
+}
+
+#[cfg(feature = "alloc")]
+pub fn take_cstr_utf8(
+    i: &[u8],
+) -> Result<(&[u8], String), ParseError> {
+    let mut vec = Vec::new();
+
+    let mut i = i;
+    loop {
+        let (j, v) = ne_u8(i)?;
+        if v == 0 {
+            break;
+        }
+        vec.push(v);
+        i = j;
+    }
+    let s = String::from_utf8(vec).or(Err(ParseError::InvalidString))?;
+
+    Ok((i, s))
 }
