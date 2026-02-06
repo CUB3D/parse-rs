@@ -156,6 +156,7 @@ pub fn take_cstr_utf8(
     loop {
         let (j, v) = ne_u8(i)?;
         if v == 0 {
+            i = j;
             break;
         }
         vec.push(v);
