@@ -149,7 +149,7 @@ pub fn take_all<T, E, F: Fn(&[u8]) -> Result<(&[u8], T), E>>(
 #[cfg(feature = "alloc")]
 pub fn take_cstr_utf8(
     i: &[u8],
-) -> Result<(&[u8], String), ParseError> {
+) -> Result<(&[u8], alloc::string::String), ParseError> {
     let mut vec = Vec::new();
 
     let mut i = i;
@@ -161,7 +161,7 @@ pub fn take_cstr_utf8(
         vec.push(v);
         i = j;
     }
-    let s = String::from_utf8(vec).or(Err(ParseError::InvalidString))?;
+    let s = alloc::string::String::from_utf8(vec).or(Err(ParseError::InvalidString))?;
 
     Ok((i, s))
 }
