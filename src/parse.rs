@@ -146,6 +146,49 @@ pub fn take_all<T, E, F: Fn(&[u8]) -> Result<(&[u8], T), E>>(
     Ok(vec)
 }
 
+/// The result of a `take_until`
+pub enum Take<T> {
+    /// There is more than one item, keep processing
+    More(T),
+
+    /// There is one more item, stop processing successfully
+    Last(T),
+
+    /// There are no more items, stop processing successfully
+    End,
+}
+
+/// Keep taking items until the end of a stream is reached
+/// For cases when the end of a stream is inline (e.g. tlv with a zero sized EoS item)
+#[cfg(feature = "alloc")]
+pub fn take_until<T, E, F: Fn(&[u8]) -> Result<(&[u8], Take<T>), E>>(
+    i: &[u8],
+    func: F,
+) -> Result<Vec<T>, E> {
+    let mut vec = Vec::new();
+
+    let mut i = i;
+    loop {
+        let (j, v) = func(i)?;
+
+        match v {
+            Take::More(v) => vec.push(v),
+            Take::Last(v) => {
+                vec.push(v);
+                break;
+            }
+            Take::End => break,
+        }
+
+        if j.len() == i.len() {
+            panic!("No progress");
+        }
+        i = j;
+    }
+
+    Ok(vec)
+}
+
 #[cfg(feature = "alloc")]
 pub fn take_cstr_utf8(
     i: &[u8],
