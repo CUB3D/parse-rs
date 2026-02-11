@@ -164,12 +164,17 @@ pub enum Take<T> {
 pub fn take_until<T, E, F: Fn(&[u8]) -> Result<(&[u8], Take<T>), E>>(
     i: &[u8],
     func: F,
-) -> Result<Vec<T>, E> {
+) -> Result<(&[u8], Vec<T>), E> {
     let mut vec = Vec::new();
 
     let mut i = i;
     loop {
         let (j, v) = func(i)?;
+
+        if j.len() == i.len() {
+            panic!("No progress");
+        }
+        i = j;
 
         match v {
             Take::More(v) => vec.push(v),
@@ -179,14 +184,9 @@ pub fn take_until<T, E, F: Fn(&[u8]) -> Result<(&[u8], Take<T>), E>>(
             }
             Take::End => break,
         }
-
-        if j.len() == i.len() {
-            panic!("No progress");
-        }
-        i = j;
     }
 
-    Ok(vec)
+    Ok((i, vec))
 }
 
 #[cfg(feature = "alloc")]
